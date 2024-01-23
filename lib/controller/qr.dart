@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:developer';
+import 'dart:math' as math;
 
 import 'package:esoteric_volume/controller/controller.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +19,15 @@ class _QRCodeVolumeControllerState extends State<QRCodeVolumeController> {
   @override
   void initState() {
     super.initState();
-    add1 = Random().nextInt(10) + 10;
-    mul2 = Random().nextInt(5) + 2;
-    add3 = Random().nextInt(10) - 5;
+    add1 = math.Random().nextInt(10) + 10;
+    mul2 = math.Random().nextInt(5) + 2;
+    add3 = math.Random().nextInt(10) - 5;
   }
 
   String encrypt(int num) {
-    return (((num + add1) * mul2) + add3).toString();
+    final enc = ((num + add1) * mul2) + add3;
+    log('[QR] encrypted $num to $enc');
+    return enc.toString();
   }
 
   int? decrypt(String str) {

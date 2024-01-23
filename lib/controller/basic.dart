@@ -16,7 +16,7 @@ class BasicVolumeController extends VolumeController {
 }
 
 class _BasicVolumeControllerState extends State<BasicVolumeController> {
-  int current = 100;
+  int current = 70;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:esoteric_volume/controller/controller.dart';
+import 'package:esoteric_volume/level_selector.dart';
 import 'package:esoteric_volume/levels.dart';
 import 'package:esoteric_volume/volume_display.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Esoteric Volume Controllers',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.lightBlueAccent,
+        ),
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: const MyHomePage(),
     );
@@ -38,13 +42,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Stage? currentStage;
 
-  void setRandomStage() async {
+  void setRandomStage({
+    Level? level,
+  }) async {
     setState(() => currentStage = null);
 
     await Future.delayed(const Duration(milliseconds: 500));
 
     setState(() => currentStage = Stage(
-          Level.random(),
+          level ?? Level.random(),
           Random().nextInt(99) + 1,
         ));
   }
@@ -71,26 +77,33 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (stage == null) return const SizedBox();
                     final currentVolume = stage.currentVolume;
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Column(
                           children: [
-                            VolumeDisplay(stage.volumeGoal, labelText: '목표 볼륨'),
-                            VolumeDisplay(
-                              currentVolume,
-                              labelText: '현재 볼륨',
-                              color: currentVolume == null ||
-                                      currentVolume == stage.volumeGoal
-                                  ? Colors.teal
-                                  : currentVolume > stage.volumeGoal
-                                      ? Colors.red
-                                      : Colors.orange,
+                            Tooltip(
+                              message: '목표 볼륨',
+                              child: VolumeDisplay(stage.volumeGoal),
+                            ),
+                            SizedBox(height: 10),
+                            Tooltip(
+                              message: '현재 볼륨',
+                              child: VolumeDisplay(
+                                currentVolume,
+                                color: currentVolume == null ||
+                                        currentVolume == stage.volumeGoal
+                                    ? Colors.teal
+                                    : currentVolume > stage.volumeGoal
+                                        ? Colors.red
+                                        : Colors.orange,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     );
                   }),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 50),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -125,21 +138,66 @@ class _MyHomePageState extends State<MyHomePage> {
                             )),
                     ),
                   ),
-                  const SizedBox(height: 80),
-                  TextButton(
-                    onPressed:
-                        stage?.isCorrect() == true ? setRandomStage : null,
-                    child: const Text('확인'),
-                  )
+                  const SizedBox(height: 40),
+                  Builder(builder: (context) {
+                    String text = '';
+                    void Function()? onPressed;
+
+                    if (stage == null) {
+                      text = '불러오는 중';
+                    } //
+                    else {
+                      final current = stage.currentVolume;
+                      if (stage.isCorrect()) {
+                        text = '확인';
+                        onPressed = setRandomStage;
+                      } else if (current == null) {
+                        text = '볼륨을 설정해 주세요';
+                      } else if (current < stage.volumeGoal) {
+                        text = '볼륨이 너무 작습니다.';
+                      } else {
+                        text = '볼륨이 너무 큽니다.';
+                      }
+                    }
+
+                    return TextButton(
+                      onPressed: onPressed,
+                      child: Text(text),
+                    );
+                  })
                 ],
               ),
             ),
           ),
           Text('passed $successCount'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.list),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                                appBar: AppBar(),
+                                body: LevelSelector(
+                                  onTap: (level) {
+                                    Navigator.pop(context);
+                                    setRandomStage(level: level);
+                                  },
+                                ),
+                              )));
+                },
+              ),
+              SizedBox(width: 10),
+              IconButton(
+                icon: Icon(Icons.refresh),
+                onPressed: setRandomStage,
+              ),
+            ],
+          )
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: setRandomStage,
       ),
     );
   }

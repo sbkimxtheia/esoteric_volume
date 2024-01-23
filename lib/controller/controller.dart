@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 abstract class VolumeController extends StatefulWidget {
   final ControllerData data;
-
   const VolumeController(
     this.data, {
     super.key,

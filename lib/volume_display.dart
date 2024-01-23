@@ -6,15 +6,16 @@ class VolumeDisplay extends StatelessWidget {
   final Color color;
 
   const VolumeDisplay(
-    this.value, {
+    int? value, {
     super.key,
     this.labelText,
     this.color = Colors.teal,
-  });
+  }) : value = value != null && 0 <= value && value <= 100 ? value : null;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
+      alignment: Alignment.center,
       width: 300,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -38,7 +39,10 @@ class VolumeDisplay extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(value?.toString() ?? '?'),
+          SizedBox(
+            width: 25,
+            child: Text(value?.toString() ?? '?'),
+          ),
         ],
       ),
     );

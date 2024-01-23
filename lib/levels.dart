@@ -1,17 +1,22 @@
 import 'dart:math';
 
+import 'package:esoteric_volume/controller/axis.dart';
 import 'package:esoteric_volume/controller/basic.dart';
 import 'package:esoteric_volume/controller/basic.vertical.dart';
 import 'package:esoteric_volume/controller/controller.dart';
+import 'package:esoteric_volume/controller/grid.dart';
+import 'package:esoteric_volume/controller/increment.dart';
 import 'package:esoteric_volume/controller/qr.dart';
+import 'package:esoteric_volume/controller/random.dart';
 import 'package:esoteric_volume/controller/textfield.dart';
+import 'package:esoteric_volume/controller/timing.dart';
 import 'package:flutter/material.dart';
 
 class Level {
-  final int level;
+  final int number;
   final CreateControllerWidget _createWidget;
 
-  Level(this.level, this._createWidget);
+  Level._(this.number, this._createWidget);
 
   Widget createWidget(ControllerData data) {
     return _createWidget(data);
@@ -27,9 +32,16 @@ class Level {
     (data) => RotatedBox(
         quarterTurns: 3, child: BasicVolumeController(data, width: 30)),
     (data) => QRCodeVolumeController(data),
+    (data) => IncrementController(data),
+    (data) => RandomController(data),
+    (data) => GridVolumeController(data),
+    (data) => AxisVolumeController(data),
+    (data) => TimingVolumeController(data, period: 30),
+    (data) => TimingVolumeController(data, period: 15),
+    (data) => TimingVolumeController(data, period: 8),
   ];
   static int _counter = 1;
-  static final levels = _defs.map((e) => Level(_counter++, e)).toList();
+  static final levels = _defs.map((e) => Level._(_counter++, e)).toList();
   static final levelsCount = levels.length;
 
   static Level random() {
