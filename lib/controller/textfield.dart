@@ -10,15 +10,21 @@ class TextInputVolumeController extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 50,
-      child: TextField(
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 20),
-        onChanged: (s) {
-          data.onChanged(int.tryParse(s));
-        },
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.volume_up),
+        SizedBox(
+          width: 50,
+          child: TextField(
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20),
+            onChanged: (s) {
+              data.onChanged(int.tryParse(s));
+            },
+          ),
+        ),
+      ],
     );
   }
 }

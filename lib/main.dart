@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:esoteric_volume/controller/controller.dart';
@@ -38,27 +39,67 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  static const int timerPeriod = 10;
+
+  Widget? block;
+
+  bool infMode = false;
+
   int successCount = 0;
+  int elapsedMs = 0;
+  final List<int> elapsedMsList = [];
+  Timer? timer;
+  Stage? currentStage = Stage.random();
 
-  Stage? currentStage;
+  // region timer
 
-  void setRandomStage({
-    Level? level,
-  }) async {
-    setState(() => currentStage = null);
+  void stopTimer() {
+    timer?.cancel();
+    timer = null;
+  }
 
+  void restartTimer() {
+    stopTimer();
+    elapsedMs = 0;
+    timer = Timer.periodic(
+      const Duration(milliseconds: timerPeriod),
+      (timer) => setState(() => elapsedMs += timerPeriod),
+    );
+  }
+
+  // endregion
+
+  Future changeStage(Stage stage) async {
+    // clear
+    currentStage = null;
+    stopTimer();
+
+    // wait
     await Future.delayed(const Duration(milliseconds: 500));
 
-    setState(() => currentStage = Stage(
-          level ?? Level.random(),
-          Random().nextInt(99) + 1,
-        ));
+    // show
+    currentStage = stage;
+    restartTimer();
   }
+
+
+  void nextStage(){
+
+  }
+
+
+
+
 
   @override
   void initState() {
     super.initState();
-    setRandomStage();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer?.cancel();
   }
 
   @override
@@ -85,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               message: '목표 볼륨',
                               child: VolumeDisplay(stage.volumeGoal),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             Tooltip(
                               message: '현재 볼륨',
                               child: VolumeDisplay(
@@ -170,11 +211,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Text('passed $successCount'),
+          Text('${(elapsedMs / 1000).toStringAsFixed(2)}s'),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.list),
+                icon: const Icon(Icons.list),
                 onPressed: () {
                   Navigator.push(
                       context,
@@ -190,9 +232,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               )));
                 },
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               IconButton(
-                icon: Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh),
                 onPressed: setRandomStage,
               ),
             ],
@@ -205,10 +247,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class Stage {
   final Level level;
-  final int volumeGoal;
+  final int volumeGoal = Random().nextInt(99) + 1;
   int? currentVolume;
 
-  Stage(this.level, this.volumeGoal);
+  Stage(this.level);
+
+  Stage.random() : this(Level.random());
 
   bool isCorrect() {
     return currentVolume == volumeGoal;

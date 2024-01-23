@@ -10,6 +10,7 @@ import 'package:esoteric_volume/controller/qr.dart';
 import 'package:esoteric_volume/controller/random.dart';
 import 'package:esoteric_volume/controller/textfield.dart';
 import 'package:esoteric_volume/controller/timing.dart';
+import 'package:esoteric_volume/controller/vibrating.dart';
 import 'package:flutter/material.dart';
 
 class Level {
@@ -39,8 +40,9 @@ class Level {
     (data) => TimingVolumeController(data, period: 30),
     (data) => TimingVolumeController(data, period: 15),
     (data) => TimingVolumeController(data, period: 8),
+    (data) => VibratingVolumeController(data),
   ];
-  static int _counter = 1;
+  static int _counter = 0;
   static final levels = _defs.map((e) => Level._(_counter++, e)).toList();
   static final levelsCount = levels.length;
 
