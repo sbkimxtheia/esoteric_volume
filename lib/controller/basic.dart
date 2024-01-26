@@ -1,13 +1,16 @@
 import 'package:esoteric_volume/controller/controller.dart';
+import 'package:esoteric_volume/volume_extension.dart';
 import 'package:flutter/material.dart';
 
 class BasicVolumeController extends VolumeController {
   final double width, height;
+  final int initialVolume;
 
   const BasicVolumeController(
     super.data, {
     this.width = 240,
     this.height = 30,
+    this.initialVolume = 70,
     super.key,
   });
 
@@ -16,7 +19,7 @@ class BasicVolumeController extends VolumeController {
 }
 
 class _BasicVolumeControllerState extends State<BasicVolumeController> {
-  int current = 70;
+  late int current = widget.initialVolume.stabilized();
 
   @override
   Widget build(BuildContext context) {

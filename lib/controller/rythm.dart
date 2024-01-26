@@ -30,6 +30,8 @@ class _RythmVolumeControllerState extends State<RythmicController> {
   int adder = 0;
   late Timer timer;
 
+  bool isButtonExpanded = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,49 +67,62 @@ class _RythmVolumeControllerState extends State<RythmicController> {
         Container(
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              boxShadow: [const BoxShadow(blurRadius: 3, offset: Offset(.5, .5))]),
+              boxShadow: [
+                const BoxShadow(blurRadius: 3, offset: Offset(.5, .5))
+              ]),
           child: Material(
             color: Colors.white,
             shadowColor: Colors.black,
             borderRadius: BorderRadius.circular(4),
             child: InkWell(
               borderRadius: BorderRadius.circular(4),
+              onHover: (b) {
+                setState(() {
+                  isButtonExpanded = b;
+                });
+              },
               onTap: add,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 7),
-                    SizedBox(
-                      width: 200,
-                      child: TweenAnimationBuilder<double>(
-                        duration: Duration(milliseconds: intervalMs ~/ 1.5),
-                        curve: Curves.easeInOut,
-                        tween: Tween(
-                          begin: 0,
-                          end: (adder + maxAdderAbs) / (maxAdderAbs * 2),
+              child: AnimatedSize(
+                duration: Duration(milliseconds: 200),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: 200,
+                        child: TweenAnimationBuilder<double>(
+                          duration: Duration(milliseconds: intervalMs ~/ 1.5),
+                          curve: Curves.easeInOut,
+                          tween: Tween(
+                            begin: 0,
+                            end: (adder + maxAdderAbs) / (maxAdderAbs * 2),
+                          ),
+                          builder: (BuildContext context, double value,
+                              Widget? child) {
+                            final isPositive = value >= 0.5;
+                            return LinearProgressIndicator(
+                              minHeight: 9,
+                              value: value,
+                              color: isPositive
+                                  ? Colors.lightBlue
+                                  : Colors.deepOrangeAccent,
+                            );
+                          },
                         ),
-                        builder: (BuildContext context, double value,
-                            Widget? child) {
-                          final isPositive = value >= 0.5;
-                          return LinearProgressIndicator(
-                            minHeight: 9,
-                            value: value,
-                            color: isPositive
-                                ? Colors.lightBlue
-                                : Colors.deepOrangeAccent,
-                          );
-                        },
                       ),
-                    ),
-                    const SizedBox(height: 7),
-                    Text(
-                      '${adder > 0 ? '+$adder' : adder}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                      isButtonExpanded
+                          ? Padding(
+                              padding: const EdgeInsets.all(3),
+                              child: Text(
+                                '${adder > 0 ? '+$adder' : adder}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            )
+                          : SizedBox(),
+                    ],
+                  ),
                 ),
               ),
             ),
