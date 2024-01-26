@@ -56,7 +56,7 @@ class _AxisVolumeControllerState extends State<AxisVolumeController> {
                 SizedBox(
                   height: 50,
                   child: Slider(
-                    max: 10,
+                    max: 9,
                     min: 0,
                     value: v.toDouble(),
                     onChanged: (v) {

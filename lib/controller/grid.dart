@@ -20,6 +20,7 @@ class GridVolumeController extends StatelessWidget {
       height: 525,
       child: Expanded(
         child: GridView.count(
+          shrinkWrap: true,
           childAspectRatio: 1,
           crossAxisCount: 10,
           children: items,

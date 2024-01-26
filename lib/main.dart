@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int elapsedMs = 0;
   final List<int> elapsedMsList = [];
   Timer? timer;
-  Stage? currentStage = Stage.random();
+  Stage? currentStage;
 
   // region timer
 
@@ -59,6 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void restartTimer() {
+    if (elapsedMs != 0) {
+      elapsedMsList.add(elapsedMs);
+    }
     stopTimer();
     elapsedMs = 0;
     timer = Timer.periodic(
@@ -69,37 +72,64 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // endregion
 
-  Future changeStage(Stage stage) async {
+  Future changeStage(Stage stage, {Widget? splash}) async {
     // clear
-    currentStage = null;
     stopTimer();
+    setState(() {
+      block = splash;
+      currentStage = null;
+    });
 
     // wait
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 800));
 
     // show
-    currentStage = stage;
     restartTimer();
+    setState(() {
+      block = null;
+      currentStage = stage;
+    });
   }
 
-
-  void nextStage(){
-
+  void onSuccess() async {
+    await changeStage(Stage.random(),
+        splash: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text('소요시간', style: TextStyle(color: Colors.grey)),
+            Text(
+              '${(elapsedMs / 1000).toStringAsFixed(2)}s',
+              style: const TextStyle(fontSize: 20),
+            ),
+          ],
+        ));
   }
 
-
-
-
+  void skipStage() {
+    changeStage(Stage.random());
+  }
 
   @override
   void initState() {
     super.initState();
+    changeStage(Stage.random());
   }
 
   @override
   void dispose() {
     super.dispose();
     timer?.cancel();
+  }
+
+  double getAverageMs() {
+    final count = elapsedMsList.length;
+
+    if (count == 0) return 0;
+
+    final sum = elapsedMsList.fold(0, (p, c) => p + c);
+    return sum / count;
   }
 
   @override
@@ -114,36 +144,39 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Builder(builder: (context) {
-                    if (stage == null) return const SizedBox();
-                    final currentVolume = stage.currentVolume;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          children: [
-                            Tooltip(
-                              message: '목표 볼륨',
-                              child: VolumeDisplay(stage.volumeGoal),
-                            ),
-                            const SizedBox(height: 10),
-                            Tooltip(
-                              message: '현재 볼륨',
-                              child: VolumeDisplay(
-                                currentVolume,
-                                color: currentVolume == null ||
-                                        currentVolume == stage.volumeGoal
-                                    ? Colors.teal
-                                    : currentVolume > stage.volumeGoal
-                                        ? Colors.red
-                                        : Colors.orange,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    child: Builder(builder: (context) {
+                      if (stage == null) return const SizedBox();
+                      final currentVolume = stage.currentVolume;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            children: [
+                              Tooltip(
+                                message: '목표 볼륨',
+                                child: VolumeDisplay(stage.volumeGoal),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  }),
+                              const SizedBox(height: 10),
+                              Tooltip(
+                                message: '현재 볼륨',
+                                child: VolumeDisplay(
+                                  currentVolume,
+                                  color: currentVolume == null ||
+                                          currentVolume == stage.volumeGoal
+                                      ? Colors.teal
+                                      : currentVolume > stage.volumeGoal
+                                          ? Colors.red
+                                          : Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
                   const SizedBox(height: 50),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -159,24 +192,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                     child: AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 320),
                       curve: Curves.easeOutQuart,
-                      child: stage == null
-                          ? const Padding(
-                              padding: EdgeInsets.all(20),
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
+                      child: Builder(builder: (context) {
+                        if (stage != null) {
+                          return stage.level.createWidget(ControllerData(
+                            onChanged: (newVolume) {
+                              setState(() {
+                                stage.currentVolume = newVolume;
+                              });
+                            },
+                          ));
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: block ??
+                              const SizedBox.square(
+                                dimension: 30,
                                 child: CircularProgressIndicator(),
                               ),
-                            )
-                          : stage.level.createWidget(ControllerData(
-                              onChanged: (newVolume) {
-                                setState(() {
-                                  stage.currentVolume = newVolume;
-                                });
-                              },
-                            )),
+                        );
+                      }),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -190,8 +227,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     else {
                       final current = stage.currentVolume;
                       if (stage.isCorrect()) {
-                        text = '확인';
-                        onPressed = setRandomStage;
+                        text = '다음';
+                        onPressed = onSuccess;
                       } else if (current == null) {
                         text = '볼륨을 설정해 주세요';
                       } else if (current < stage.volumeGoal) {
@@ -210,8 +247,16 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-          Text('passed $successCount'),
           Text('${(elapsedMs / 1000).toStringAsFixed(2)}s'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('passed $successCount'),
+              Text(' / '),
+              Text('평균 소요시간 ${(getAverageMs() / 1000).toStringAsFixed(2)}초'),
+            ],
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -226,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 body: LevelSelector(
                                   onTap: (level) {
                                     Navigator.pop(context);
-                                    setRandomStage(level: level);
+                                    changeStage(Stage.random(level));
                                   },
                                 ),
                               )));
@@ -235,7 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(width: 10),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                onPressed: setRandomStage,
+                onPressed: onSuccess,
               ),
             ],
           )
@@ -247,14 +292,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class Stage {
   final Level level;
-  final int volumeGoal = Random().nextInt(99) + 1;
+  final int volumeGoal;
   int? currentVolume;
 
-  Stage(this.level);
+  Stage(this.level, this.volumeGoal);
 
-  Stage.random() : this(Level.random());
+  Stage.random([Level? level])
+      : this(level ?? Level.random(), Random().nextInt(99) + 1);
 
   bool isCorrect() {
     return currentVolume == volumeGoal;
   }
 }
+
