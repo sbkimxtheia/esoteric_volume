@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:esoteric_volume/controller/axis.dart';
 import 'package:esoteric_volume/controller/basic.dart';
 import 'package:esoteric_volume/controller/basic.vertical.dart';
+import 'package:esoteric_volume/controller/binary.dart';
 import 'package:esoteric_volume/controller/controller.dart';
 import 'package:esoteric_volume/controller/evading.dart';
 import 'package:esoteric_volume/controller/grid.dart';
@@ -10,6 +11,7 @@ import 'package:esoteric_volume/controller/increment.dart';
 import 'package:esoteric_volume/controller/qr.dart';
 import 'package:esoteric_volume/controller/random.dart';
 import 'package:esoteric_volume/controller/reversed.dart';
+import 'package:esoteric_volume/controller/rotating.dart';
 import 'package:esoteric_volume/controller/staying.dart';
 import 'package:esoteric_volume/controller/textfield.dart';
 import 'package:esoteric_volume/controller/timing.dart';
@@ -39,7 +41,10 @@ class Level {
     (data) => QRCodeVolumeController(data),
     (data) => IncrementController(data),
     (data) => RandomController(data),
-    (data) => GridVolumeController(data),
+    (data) => GridVolumeController(data, showText: true, showTooltip: false, shuffle: false),
+    (data) => GridVolumeController(data, showText: true, showTooltip: false, shuffle: true),
+    (data) => GridVolumeController(data, showText: false, showTooltip: true, shuffle: false),
+    (data) => GridVolumeController(data, showText: false, showTooltip: true, shuffle: true),
     (data) => AxisVolumeController(data),
     (data) => TimingVolumeController(data, period: 30),
     (data) => TimingVolumeController(data, period: 15),
@@ -54,6 +59,11 @@ class Level {
     (data) => StayingVolumeController(data, sensitivity: 1.0),
     (data) => StayingVolumeController(data, sensitivity: 2.5),
     (data) => StayingVolumeController(data, sensitivity: 6.0),
+    (data) => BinaryVolumeController(data),
+    (data) => RotatingVolumeController(data),
+    (data) => RotatingVolumeController(data, speed: 2),
+    (data) => RotatingVolumeController(data, speed: 5),
+    (data) => RotatingVolumeController(data, speed: 10),
   ];
   static int _counter = 0;
   static final levels = _defs.map((e) => Level._(_counter++, e)).toList();

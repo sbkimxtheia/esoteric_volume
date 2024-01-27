@@ -19,6 +19,7 @@ class BasicVolumeController extends VolumeController {
 }
 
 class _BasicVolumeControllerState extends State<BasicVolumeController> {
+  //
   late int current = widget.initialVolume.stabilized();
 
   @override

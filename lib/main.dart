@@ -91,30 +91,36 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future changeRandomStage({Level? level, Widget? splash}) => changeStage(randomStage(level), splash: splash);
+
   void onSuccess() async {
-    await changeStage(Stage.random(),
+    await changeRandomStage(
         splash: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text('소요시간', style: TextStyle(color: Colors.grey)),
-            Text(
-              '${(elapsedMs / 1000).toStringAsFixed(2)}s',
-              style: const TextStyle(fontSize: 20),
-            ),
-          ],
-        ));
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Text('소요시간', style: TextStyle(color: Colors.grey)),
+        Text(
+          '${(elapsedMs / 1000).toStringAsFixed(2)}s',
+          style: const TextStyle(fontSize: 20),
+        ),
+      ],
+    ));
   }
 
   void skipStage() {
-    changeStage(Stage.random());
+    changeRandomStage(splash: Text('스테이지 건너뜀'));
   }
 
   @override
   void initState() {
     super.initState();
-    changeStage(Stage.random());
+    changeRandomStage(splash: Text('Welcome!'));
+  }
+
+  Stage randomStage([Level? level]) {
+    return Stage.random(() => setState(() {}), level);
   }
 
   @override
@@ -163,8 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 message: '현재 볼륨',
                                 child: VolumeDisplay(
                                   currentVolume,
-                                  color: currentVolume == null ||
-                                          currentVolume == stage.volumeGoal
+                                  color: currentVolume == null || currentVolume == stage.volumeGoal
                                       ? Colors.teal
                                       : currentVolume > stage.volumeGoal
                                           ? Colors.red
@@ -196,13 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       curve: Curves.easeOutQuart,
                       child: Builder(builder: (context) {
                         if (stage != null) {
-                          return stage.level.createWidget(ControllerData(
-                            onChanged: (newVolume) {
-                              setState(() {
-                                stage.currentVolume = newVolume;
-                              });
-                            },
-                          ));
+                          return stage.widget;
                         }
 
                         return Padding(
@@ -271,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 body: LevelSelector(
                                   onTap: (level) {
                                     Navigator.pop(context);
-                                    changeStage(Stage.random(level));
+                                    changeRandomStage(level: level);
                                   },
                                 ),
                               )));
@@ -290,18 +289,41 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class Stage {
+class Stage extends StatelessWidget {
   final Level level;
   final int volumeGoal;
+  final void Function() onChanged;
   int? currentVolume;
 
-  Stage(this.level, this.volumeGoal);
+  Stage(
+    this.level,
+    this.volumeGoal,
+    this.onChanged,
+  );
 
-  Stage.random([Level? level])
-      : this(level ?? Level.random(), Random().nextInt(99) + 1);
+  Stage.random(void Function() onChanged, [Level? level])
+      : this(
+          level ?? Level.random(),
+          Random().nextInt(99) + 1,
+          onChanged,
+        );
 
   bool isCorrect() {
     return currentVolume == volumeGoal;
   }
-}
 
+  late final controllerData = ControllerData(
+    onChanged: (v) {
+      currentVolume = v;
+      onChanged();
+    },
+    random: Random(),
+  );
+
+  late final widget = level.createWidget(controllerData);
+
+  @override
+  Widget build(BuildContext context) {
+    return widget;
+  }
+}
