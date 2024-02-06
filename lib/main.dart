@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Esoteric Volume Controllers',
+      title: '수상한 볼륨 조절기',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.lightBlueAccent,
@@ -144,147 +144,152 @@ class _MyHomePageState extends State<MyHomePage> {
     final stage = this.currentStage;
 
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    child: Builder(builder: (context) {
-                      if (stage == null) return const SizedBox();
-                      final currentVolume = stage.currentVolume;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Column(
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Center(
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        child: Builder(builder: (context) {
+                          if (stage == null) return const SizedBox();
+                          final currentVolume = stage.currentVolume;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Tooltip(
-                                message: '목표 볼륨',
-                                child: VolumeDisplay(stage.volumeGoal),
-                              ),
-                              const SizedBox(height: 10),
-                              Tooltip(
-                                message: '현재 볼륨',
-                                child: VolumeDisplay(
-                                  currentVolume,
-                                  color: currentVolume == null || currentVolume == stage.volumeGoal
-                                      ? Colors.teal
-                                      : currentVolume > stage.volumeGoal
-                                          ? Colors.red
-                                          : Colors.orange,
-                                ),
+                              Column(
+                                children: [
+                                  Tooltip(
+                                    message: '목표 볼륨',
+                                    child: VolumeDisplay(stage.volumeGoal),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Tooltip(
+                                    message: '현재 볼륨',
+                                    child: VolumeDisplay(
+                                      currentVolume,
+                                      color: currentVolume == null || currentVolume == stage.volumeGoal
+                                          ? Colors.teal
+                                          : currentVolume > stage.volumeGoal
+                                              ? Colors.red
+                                              : Colors.orange,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 50),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.9),
-                          offset: const Offset(2, 2),
-                          blurRadius: 5,
-                        )
-                      ],
-                    ),
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 320),
-                      curve: Curves.easeOutQuart,
-                      child: Builder(builder: (context) {
-                        if (stage != null) {
-                          return stage.widget;
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 50),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.9),
+                              offset: const Offset(2, 2),
+                              blurRadius: 5,
+                            )
+                          ],
+                        ),
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeOutQuart,
+                          child: Builder(builder: (context) {
+                            if (stage != null) {
+                              return stage.widget;
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: block ??
+                                  const SizedBox.square(
+                                    dimension: 30,
+                                    child: CircularProgressIndicator(),
+                                  ),
+                            );
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Builder(builder: (context) {
+                        String text = '';
+                        void Function()? onPressed;
+
+                        if (stage == null) {
+                          text = '불러오는 중';
+                        } //
+                        else {
+                          final current = stage.currentVolume;
+                          if (stage.isCorrect()) {
+                            text = '다음';
+                            onPressed = onSuccess;
+                          } else if (current == null) {
+                            text = '볼륨을 설정해 주세요';
+                          } else if (current < stage.volumeGoal) {
+                            text = '볼륨이 너무 작습니다.';
+                          } else {
+                            text = '볼륨이 너무 큽니다.';
+                          }
                         }
 
-                        return Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: block ??
-                              const SizedBox.square(
-                                dimension: 30,
-                                child: CircularProgressIndicator(),
-                              ),
+                        return TextButton(
+                          onPressed: onPressed,
+                          child: Text(text),
                         );
-                      }),
-                    ),
+                      })
+                    ],
                   ),
-                  const SizedBox(height: 40),
-                  Builder(builder: (context) {
-                    String text = '';
-                    void Function()? onPressed;
-
-                    if (stage == null) {
-                      text = '불러오는 중';
-                    } //
-                    else {
-                      final current = stage.currentVolume;
-                      if (stage.isCorrect()) {
-                        text = '다음';
-                        onPressed = onSuccess;
-                      } else if (current == null) {
-                        text = '볼륨을 설정해 주세요';
-                      } else if (current < stage.volumeGoal) {
-                        text = '볼륨이 너무 작습니다.';
-                      } else {
-                        text = '볼륨이 너무 큽니다.';
-                      }
-                    }
-
-                    return TextButton(
-                      onPressed: onPressed,
-                      child: Text(text),
-                    );
-                  })
+                ),
+              ),
+              Text('${(elapsedMs / 1000).toStringAsFixed(2)}s'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('passed $successCount'),
+                  Text(' / '),
+                  Text('평균 소요시간 ${(getAverageMs() / 1000).toStringAsFixed(2)}초'),
                 ],
               ),
-            ),
-          ),
-          Text('${(elapsedMs / 1000).toStringAsFixed(2)}s'),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('passed $successCount'),
-              Text(' / '),
-              Text('평균 소요시간 ${(getAverageMs() / 1000).toStringAsFixed(2)}초'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.list),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Scaffold(
+                                    appBar: AppBar(),
+                                    body: LevelSelector(
+                                      onTap: (level) {
+                                        Navigator.pop(context);
+                                        changeRandomStage(level: level);
+                                      },
+                                    ),
+                                  )));
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: onSuccess,
+                  ),
+                ],
+              )
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.list),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                                appBar: AppBar(),
-                                body: LevelSelector(
-                                  onTap: (level) {
-                                    Navigator.pop(context);
-                                    changeRandomStage(level: level);
-                                  },
-                                ),
-                              )));
-                },
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onSuccess,
-              ),
-            ],
-          )
-        ],
+        ),
       ),
     );
   }
